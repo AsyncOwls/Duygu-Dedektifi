@@ -6,42 +6,36 @@ sahneyi duygunun üzerine giydirir, diğerleri duyguyu tahmin eder.
 ## Klasör Yapısı
 
 ```
-duygu-dedektifi/
-├── index.html                  # Markup iskeleti
-├── css/
-│   ├── base.css                # Reset, değişkenler, tipografi
-│   ├── layout.css              # Header, main, footer
-│   └── components.css          # Kart, buton, sahne, deste
-└── js/
-    ├── main.js                 # Giriş noktası — her şeyi bağlar
-    ├── data/
-    │   ├── emotions.js         # 7 × 10 = 70 duygu
-    │   └── scenes.js           # 25 sahne kartı
-    ├── models/
-    │   ├── Emotion.js          # Duygu modeli
-    │   ├── Scene.js            # Sahne modeli
-    │   └── Deck.js             # Generic deste (shuffle, draw, reset)
-    ├── ui/
-    │   ├── EmotionCard.js      # Duygu kartı — flip + blur
-    │   ├── SceneCard.js        # Sahne kartı — render
-    │   └── MiniEmotion.js      # Bulanık duygu hatırlatıcısı
-    └── controllers/
-        └── GameController.js   # Oyun akışı, faz geçişleri
+├── index.html               # Vite giriş sayfası (global stiller + #root)
+├── src/
+│   ├── main.jsx             # React'i başlatır, Nunito fontunu yükler
+│   ├── App.jsx              # Ekran akışı, ayarlar, oturum kaydı
+│   ├── components/shared.jsx
+│   ├── screens/             # Her ekran ayrı .jsx
+│   └── data/                # Duygular, sahneler, oyuncular, metinler
+├── ios/ · android/          # Capacitor native projeleri
+├── capacitor.config.json
+└── vite.config.js
 ```
 
-## Çalıştırma
+## Komutlar
 
-ES6 module kullanıldığı için dosyaları çift tıklayarak açmak çalışmaz
-(tarayıcıların CORS kısıtlaması).
-
-**VSCode:** "Live Server" eklentisi — index.html'e sağ tık → "Open with Live Server"
-
-**Veya terminalden:**
 ```bash
-cd duygu-dedektifi
-python3 -m http.server 8000
-# Tarayıcıda: http://localhost:8000
+npm install            # ilk kurulum
+npm run dev            # geliştirme sunucusu (http://localhost:5173)
+npm run build          # production build → dist/
+npm run preview        # dist/'i yerelde sun
+
+npm run sync:ios       # build + iOS projesine kopyala
+npm run open:ios       # Xcode'da aç
+npm run live:ios       # simülatörde canlı yenileme (--device: gerçek cihaz)
+
+npm run sync:android   # build + Android projesine kopyala
+npm run open:android   # Android Studio'da aç
 ```
+
+`src/` altında değişiklik yaptıktan sonra native uygulamada görmek için
+`sync:ios` / `sync:android` çalıştırılmalı.
 
 ## Oyun Akışı
 
@@ -54,8 +48,4 @@ python3 -m http.server 8000
 
 ## Geliştirme Notları
 
-- Tüm DOM bağları `data-*` attribute'ları üzerinden — seçiciler `main.js`'te toplu.
-- Her sınıf JSDoc ile yorumlanmıştır.
-- Controller, UI bileşenlerini DI yoluyla alır; bu sayede ileride test yazmak
-  ya da başka bir ekran/varyant eklemek kolay.
-- `window.__game` üzerinden geliştirme sırasında konsoldan erişilebilir.
+- Her dosya ihtiyaç duyduğu şeyi `import` eder; global değişken yok.

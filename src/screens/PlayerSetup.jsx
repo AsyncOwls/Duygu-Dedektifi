@@ -1,4 +1,8 @@
-function PlayerSetup({ onStart, onBack, ageMode, gameMode }) {
+import React from 'react';
+import { MAX_PLAYERS, PLAYER_ANIMALS, PLAYER_GRADS } from '../data/players';
+import { STRINGS } from '../data/strings';
+
+export function PlayerSetup({ onStart, onBack, ageMode, gameMode }) {
   const [gameName, setGameName] = React.useState('');
   const isMixed = ageMode === 'mixed';
   const isGroup = gameMode === 'group';

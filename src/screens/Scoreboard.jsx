@@ -1,3 +1,8 @@
+import React from 'react';
+import { GROUPS } from '../data/emotions';
+import { PLAYER_ANIMALS, PLAYER_GRADS } from '../data/players';
+import { STRINGS } from '../data/strings';
+
 const SB_GRP_GRADS = [
   'linear-gradient(135deg,#FF6B7A,#FF8C42)',
   'linear-gradient(135deg,#3D5AFE,#B14AED)',
@@ -193,7 +198,7 @@ function ScoreCardCompact({ p, gradOverride, scoreDelta }) {
   );
 }
 
-function Scoreboard({ players, prevPlayers, onContinue, onClose }) {
+export function Scoreboard({ players, prevPlayers, onContinue, onClose }) {
   const isOverlay = !!onClose;
   const totalRounds = players.reduce((sum, p) => sum + (p.told || 0), 0);
   const isGroup = players.some(p => p.groupIdx != null);

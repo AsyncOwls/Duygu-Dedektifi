@@ -1,3 +1,7 @@
+import React from 'react';
+import { PLAYER_ANIMALS, PLAYER_GRADS } from '../data/players';
+import { STRINGS } from '../data/strings';
+
 function SelectedCheck() {
   return (
     <span style={{
@@ -11,7 +15,7 @@ function SelectedCheck() {
   );
 }
 
-function RoundResult({ players, currentPlayerIdx, onConfirm, onRetry }) {
+export function RoundResult({ players, currentPlayerIdx, onConfirm, onRetry }) {
   // Çoklu seçim: birden fazla oyuncu bilebilir.
   const [selectedPlayers, setSelectedPlayers] = React.useState([]);
   // Özel seçim: 'none' (kimse bilmedi) | 'retry' (ikinci şans) | null

@@ -1,0 +1,13 @@
+{
+  "appId": "com.beyzapaksin.duyguavi",
+  "appName": "Duygu Avı",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": false,
+    "backgroundColor": "#FAF7F2"
+  },
+  "android": {
+    "backgroundColor": "#FAF7F2"
+  }
+}

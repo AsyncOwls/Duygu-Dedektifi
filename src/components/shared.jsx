@@ -1,5 +1,9 @@
+import React from 'react';
+import { GROUPS } from '../data/emotions';
+import { STRINGS } from '../data/strings';
+
 /* ─── RAINBOW RINGS ─────────────────────────────────────────── */
-function RainbowRings({ size = 12 }) {
+export function RainbowRings({ size = 12 }) {
   return (
     <span style={{
       display:'inline-block', width:size, height:size, borderRadius:'50%',
@@ -202,7 +206,7 @@ function MiniChip({ emotion, group }) {
 }
 
 /* ─── SCENE CARD ────────────────────────────────────────────── */
-function SceneCard({ scene, animKey, displayNum, onChangeScene, onChangeEmotion, group, dark, emotion }) {
+export function SceneCard({ scene, animKey, displayNum, onChangeScene, onChangeEmotion, group, dark, emotion }) {
   const [entered, setEntered] = React.useState(false);
   React.useEffect(() => {
     setEntered(false);
@@ -402,7 +406,7 @@ function AgeToggle({ isYouth, onChange }) {
 }
 
 /* ─── TURN HEADER (shared by EmotionScreen + SceneScreen) ───── */
-function TurnHeader({ playerName, playerGrad, playerAnimal, onScoreOpen, onListOpen, onHome, onSettingsOpen, groupName }) {
+export function TurnHeader({ playerName, playerGrad, playerAnimal, onScoreOpen, onListOpen, onHome, onSettingsOpen, groupName }) {
   return (
     <div style={{ padding:'clamp(10px,3vw,14px) clamp(16px,5vw,24px) 0', display:'flex', alignItems:'center', justifyContent:'space-between', position:'relative' }}>
       <button onClick={onHome} style={{

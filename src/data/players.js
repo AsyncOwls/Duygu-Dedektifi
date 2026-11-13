@@ -1,13 +1,13 @@
 /* eslint-disable no-unused-vars */
-var MAX_PLAYERS = 40;
+export var MAX_PLAYERS = 40;
 
 // iOS tespiti (sallama yerine "döndür", titreşim/izin farkları için). Tüm ekranlar kullanır.
-var IS_IOS = typeof navigator !== 'undefined' && (
+export var IS_IOS = typeof navigator !== 'undefined' && (
   /iP(hone|ad|od)/.test(navigator.userAgent) ||
   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
 );
 
-var PLAYER_ANIMALS = [
+export var PLAYER_ANIMALS = [
   '🦊','🐸','🐯','🐧','🦄','🐙','🦁','🐺',
   '🐰','🐼','🐨','🐮','🐷','🐵','🐔','🦆',
   '🦅','🦉','🦇','🐝','🦋','🐬','🐳','🐠',
@@ -15,7 +15,7 @@ var PLAYER_ANIMALS = [
   '🦓','🦒','🐘','🦏','🐪','🦘','🦔','🦦',
 ];
 
-var PLAYER_GRADS = [
+export var PLAYER_GRADS = [
   'linear-gradient(135deg,#FF6B7A,#E63946)',
   'linear-gradient(135deg,#FF8C42,#FF6B00)',
   'linear-gradient(135deg,#FFC93C,#F4A400)',

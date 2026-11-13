@@ -1,4 +1,8 @@
-function EmotionListOverlay({ onClose }) {
+import React from 'react';
+import { GROUPS } from '../data/emotions';
+import { STRINGS } from '../data/strings';
+
+export function EmotionListOverlay({ onClose }) {
   const [visible, setVisible] = React.useState(false);
   React.useEffect(() => { const t = setTimeout(() => setVisible(true), 30); return () => clearTimeout(t); }, []);
 

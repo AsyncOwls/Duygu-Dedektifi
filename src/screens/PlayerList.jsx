@@ -1,4 +1,9 @@
-function PlayerList({ players, currentPlayerIdx, sessionName, onPlayerTap, onGroupPlayerTap, onHome, onScoreOpen, onListOpen, onPlayerAgeChange, ageMode, settings, onSettingsChange }) {
+import React from 'react';
+import { PLAYER_ANIMALS, PLAYER_GRADS } from '../data/players';
+import { STRINGS } from '../data/strings';
+import { RainbowRings } from '../components/shared';
+
+export function PlayerList({ players, currentPlayerIdx, sessionName, onPlayerTap, onGroupPlayerTap, onHome, onScoreOpen, onListOpen, onPlayerAgeChange, ageMode, settings, onSettingsChange }) {
 
   const GRP_GRADS = [
     'linear-gradient(135deg,#FF6B7A,#FF8C42)',

@@ -1,3 +1,9 @@
+import React from 'react';
+import { IS_IOS, PLAYER_ANIMALS, PLAYER_GRADS } from '../data/players';
+import { STRINGS } from '../data/strings';
+import { RainbowRings } from '../components/shared';
+import { EmotionListOverlay } from './EmotionListOverlay';
+
 function SwipeableSessionCard({ session, index, onContinue, onDelete, formatDate }) {
   const cardRef = React.useRef(null);
   const startX = React.useRef(null);
@@ -434,7 +440,7 @@ var WELCOME_STEPS = [
   { emoji:'🔍', grad:'linear-gradient(135deg,#5FB8FF,#B14AED)', shadow:'rgba(100,60,220,0.4)',  anim:'bob 2.2s ease-in-out 0.5s infinite' },
 ];
 
-function WelcomeScreen({ onStart, sessions, onContinueSession, onDeleteSession, settings, onSettingsChange, initialShowArchive, initialArchiveTab }) {
+export function WelcomeScreen({ onStart, sessions, onContinueSession, onDeleteSession, settings, onSettingsChange, initialShowArchive, initialArchiveTab }) {
   const [showArchive, setShowArchive] = React.useState(!!initialShowArchive);
   const [showList, setShowList] = React.useState(false);
   const [showSettings, setShowSettings] = React.useState(false);

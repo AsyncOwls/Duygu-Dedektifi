@@ -1,3 +1,10 @@
+import React from 'react';
+import { GROUPS } from '../data/emotions';
+import { SCENES, SCENES_GENC } from '../data/scenes';
+import { IS_IOS } from '../data/players';
+import { STRINGS } from '../data/strings';
+import { SceneCard, TurnHeader } from '../components/shared';
+
 /* ─── TURN SCREEN ───────────────────────────────────────────────
    Duygu + sahne tek ekranda. Telefon sallanınca (veya dokununca)
    oyunda daha önce çıkmamış bir sahne + ona uygun bir duygu çekilir. */
@@ -11,7 +18,7 @@ var motionGranted = !MOTION_NEEDS_PERMISSION; // Android/masaüstü: izne gerek 
 
 // iOS 13+ izin akışı — mutlaka bir kullanıcı hareketinden (tap) çağrılmalı.
 // Hem hareket (Android sallama) hem yönelim (iOS döndürme) izni istenir.
-function ensureMotionPermission() {
+export function ensureMotionPermission() {
   if (motionGranted) return Promise.resolve(true);
   var reqs = [];
   if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function')
@@ -180,7 +187,7 @@ function ShakePrompt({ playerGrad, playerAnimal, onDraw }) {
   );
 }
 
-function TurnScreen({ playerName, playerGrad, playerAnimal, initialIsYouth, allowAgeSwitch, onEmotionDrawn, onTurnEnd, onSceneUsed, usedScenes, onListOpen, onScoreOpen, onHome, timerDuration, vibrationEnabled, settings, onSettingsChange, groupName }) {
+export function TurnScreen({ playerName, playerGrad, playerAnimal, initialIsYouth, allowAgeSwitch, onEmotionDrawn, onTurnEnd, onSceneUsed, usedScenes, onListOpen, onScoreOpen, onHome, timerDuration, vibrationEnabled, settings, onSettingsChange, groupName }) {
   /* ── Durum: yetişkin + genç sahne ayrı tutulur (toggle sabit kalsın) ── */
   const [isYouth, setIsYouth] = React.useState(!!initialIsYouth);
   const [phase, setPhase] = React.useState('idle'); // 'idle' | 'revealed'

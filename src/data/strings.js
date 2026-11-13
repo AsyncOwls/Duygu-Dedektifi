@@ -1,4 +1,4 @@
-var STRINGS = {
+export var STRINGS = {
 
   tutorial: {
     skip:    'Atla',

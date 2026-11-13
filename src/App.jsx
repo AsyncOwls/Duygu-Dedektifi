@@ -1,3 +1,17 @@
+import React from 'react';
+import { GROUPS } from './data/emotions';
+import { PLAYER_ANIMALS, PLAYER_GRADS } from './data/players';
+import { EmotionListOverlay } from './screens/EmotionListOverlay';
+import { TutorialScreen } from './screens/TutorialScreen';
+import { WelcomeScreen } from './screens/WelcomeScreen';
+import { ModeSelectScreen } from './screens/ModeSelectScreen';
+import { AgeSelectScreen } from './screens/AgeSelectScreen';
+import { PlayerSetup } from './screens/PlayerSetup';
+import { PlayerList } from './screens/PlayerList';
+import { ensureMotionPermission, TurnScreen } from './screens/TurnScreen';
+import { RoundResult } from './screens/RoundResult';
+import { Scoreboard } from './screens/Scoreboard';
+
 const RAINBOW_BONUS = 5;
 const SESSIONS_KEY = 'duyguAviSessions';
 const SETTINGS_KEY = 'duyguAviSettings';
@@ -36,7 +50,7 @@ function removeSession(id) {
   localStorage.setItem(SESSIONS_KEY, JSON.stringify(all));
 }
 
-function App() {
+export default function App() {
   const [screen, setScreen] = React.useState(
     localStorage.getItem('duyguAviTutorialSeen') ? 'welcome' : 'tutorial'
   );
@@ -299,5 +313,3 @@ function App() {
     </div>
   );
 }
-
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);

@@ -1,4 +1,6 @@
-function AgeSelectScreen({ onSelect, onBack }) {
+import React from 'react';
+
+export function AgeSelectScreen({ onSelect, onBack }) {
   const [pressed, setPressed] = React.useState(null);
 
   function handleSelect(value) {

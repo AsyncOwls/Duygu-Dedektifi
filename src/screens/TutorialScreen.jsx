@@ -1,3 +1,7 @@
+import React from 'react';
+import { IS_IOS } from '../data/players';
+import { STRINGS } from '../data/strings';
+
 
 /* ─── Tutorial görsel parçaları ───────────────────────────────── */
 function TBubble({ size, fs, children, style }) {
@@ -107,7 +111,7 @@ function SlideVisual({ index }) {
   );
 }
 
-function TutorialScreen({ onDone }) {
+export function TutorialScreen({ onDone }) {
   const [slide, setSlide] = React.useState(0);
   const [animKey, setAnimKey] = React.useState(0);
   const [touchStart, setTouchStart] = React.useState(null);

@@ -1,4 +1,6 @@
-function ModeSelectScreen({ onSelect, onBack }) {
+import React from 'react';
+
+export function ModeSelectScreen({ onSelect, onBack }) {
   const [pressed, setPressed] = React.useState(null);
 
   function handleSelect(value) {

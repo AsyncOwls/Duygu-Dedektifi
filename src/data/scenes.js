@@ -1515,5 +1515,5 @@ var SCENES_ALL = [
 ];
 
 // Havuzları tek kaynaktan türet — 'both' her ikisine de dahil edilir.
-var SCENES      = SCENES_ALL.filter(function(s) { return s.audience !== 'youth'; });
-var SCENES_GENC = SCENES_ALL.filter(function(s) { return s.audience !== 'adult'; });
+export var SCENES      = SCENES_ALL.filter(function(s) { return s.audience !== 'youth'; });
+export var SCENES_GENC = SCENES_ALL.filter(function(s) { return s.audience !== 'adult'; });

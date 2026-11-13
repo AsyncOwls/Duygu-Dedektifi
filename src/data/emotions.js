@@ -1,4 +1,4 @@
-var GROUPS = [
+export var GROUPS = [
   {
     key: 'red',
     name: 'Kırmızı',
