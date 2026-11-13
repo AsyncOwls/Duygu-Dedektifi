@@ -26,7 +26,7 @@ var STRINGS = {
         tag:     'ADIM 2',
         title:   'Oyna',
         caption: 'Konuş, canlandır',
-        pills:   ['⏱️ 90 sn', '🙊 duygu söyleme'],
+        pills:   ['🧩 3 kelime seç', '⏱️ 90 sn', '🙊 duygu söyleme'],
       },
       {
         grad:    'linear-gradient(155deg,#5FB8FF,#0B7ED8)',
@@ -97,6 +97,9 @@ var STRINGS = {
     titleReady:   'Sahneni Oyna.',
     reshakeHint:  'Yeniden çekmek için salla 🎲',
     finishBtn:    'Tamamla',
+    wordsTitle:   'Anlatımında kullanacağın 3 kelimeyi seç',
+    wordsStart:   (n, max) => n < max ? `${n}/${max} seçildi` : 'Başla →',
+    wordsLabel:   'Kelimelerin',
   },
 
   roundResult: {

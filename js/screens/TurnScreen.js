@@ -180,6 +180,45 @@ function ShakePrompt({ playerGrad, playerAnimal, onDraw }) {
   );
 }
 
+// Anlatım kelimesi seçici — 5 kelimeden tam 3'ü seçilince "Başla" açılır.
+function WordPicker({ words, picked, max, group, width, onToggle, onConfirm }) {
+  const ready = picked.length === max;
+  return (
+    <div style={{ width, display:'flex', flexDirection:'column', alignItems:'center', gap:10 }}>
+      <div style={{ fontSize:13, fontWeight:800, color:'#6A6A6A', textAlign:'center' }}>
+        {STRINGS.turn.wordsTitle}
+      </div>
+      <div style={{ display:'flex', flexWrap:'wrap', justifyContent:'center', gap:8 }}>
+        {words.map(w => {
+          const on = picked.includes(w);
+          const disabled = !on && ready;
+          return (
+            <button key={w} onClick={() => onToggle(w)} aria-pressed={on} style={{
+              padding:'8px 14px', borderRadius:100, cursor: disabled ? 'default' : 'pointer',
+              fontFamily:"'Nunito', system-ui, sans-serif", fontWeight:800, fontSize:15,
+              background: on ? (group ? group.grad : '#1A1A1A') : '#fff',
+              color: on ? (group ? group.text : '#fff') : '#1A1A1A',
+              border: on ? '1px solid transparent' : '1px solid rgba(0,0,0,0.1)',
+              boxShadow: on ? '0 6px 14px -6px rgba(0,0,0,0.35)' : 'none',
+              opacity: disabled ? 0.4 : 1,
+              transform: on ? 'scale(1.04)' : 'scale(1)',
+              transition:'all 0.18s',
+            }}>{on ? '✓ ' : ''}{w}</button>
+          );
+        })}
+      </div>
+      <button onClick={onConfirm} disabled={!ready} style={{
+        width:'100%', height:48, borderRadius:100, border:'none',
+        cursor: ready ? 'pointer' : 'default',
+        fontFamily:"'Nunito', system-ui, sans-serif", fontWeight:900, fontSize:16, letterSpacing:'0.01em',
+        background: ready ? '#1A1A1A' : 'rgba(0,0,0,0.08)',
+        color: ready ? '#fff' : '#8A8A8A',
+        transition:'background 0.2s',
+      }}>{STRINGS.turn.wordsStart(picked.length, max)}</button>
+    </div>
+  );
+}
+
 function TurnScreen({ playerName, playerGrad, playerAnimal, initialIsYouth, allowAgeSwitch, onEmotionDrawn, onTurnEnd, onSceneUsed, usedScenes, onListOpen, onScoreOpen, onHome, timerDuration, vibrationEnabled, settings, onSettingsChange, groupName }) {
   /* ── Durum: yetişkin + genç sahne ayrı tutulur (toggle sabit kalsın) ── */
   const [isYouth, setIsYouth] = React.useState(!!initialIsYouth);
@@ -200,13 +239,54 @@ function TurnScreen({ playerName, playerGrad, playerAnimal, initialIsYouth, allo
   const [ended, setEnded] = React.useState(false);
   const [countdown, setCountdown] = React.useState(0); // 3-2-1 geri sayım (0 = bitti)
 
+  /* ── Anlatım kelimeleri: 5 kelime çıkar, anlatıcı 3'ünü seçer ── */
+  const WORD_COUNT = 5, WORD_PICK = 3;
+  const [words, setWords] = React.useState([]);
+  const [picked, setPicked] = React.useState([]);
+  const [wordsLocked, setWordsLocked] = React.useState(false);
+
+  /* ── Kartı kalan yüksekliğe sığdır (kelime seçici alt alanı büyütünce) ──
+     transform ile ölçeklenir; kart içi tipografi değişmez. */
+  const midRef = React.useRef(null);
+  const cardWrapRef = React.useRef(null);
+  const [cardScale, setCardScale] = React.useState(1);
+  React.useLayoutEffect(() => {
+    const m = midRef.current, c = cardWrapRef.current;
+    if (!m || !c) return;
+    const fit = () => {
+      const cs = getComputedStyle(m);
+      const avail = m.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const nat = c.offsetHeight;
+      setCardScale(nat > 0 ? Math.min(1, avail / nat) : 1);
+    };
+    fit();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(fit);
+    ro.observe(m); ro.observe(c);
+    return () => ro.disconnect();
+  }, [phase, wordsLocked]);
+
+  function toggleWord(w) {
+    setPicked(prev => prev.includes(w)
+      ? prev.filter(x => x !== w)
+      : (prev.length < WORD_PICK ? [...prev, w] : prev));
+    if (vibrationEnabled !== false) haptic(15);
+  }
+
+  // Seçim tamamlanınca 3-2-1 geri sayım başlar.
+  function lockWords() {
+    if (picked.length !== WORD_PICK) return;
+    setWordsLocked(true);
+    setCountdown(3);
+  }
+
   /* ── 3-2-1 geri sayım: bitince sayaç otomatik başlar ── */
   React.useEffect(() => {
-    if (phase !== 'revealed' || started) return;
+    if (phase !== 'revealed' || started || !wordsLocked) return;
     if (countdown <= 0) { setStarted(true); return; }
     const t = setTimeout(() => setCountdown(c => c - 1), 1000);
     return () => clearTimeout(t);
-  }, [phase, countdown, started]);
+  }, [phase, countdown, started, wordsLocked]);
 
   function finishTurn() {
     if (scene) onSceneUsed(sceneKey(scene));
@@ -238,7 +318,8 @@ function TurnScreen({ playerName, playerGrad, playerAnimal, initialIsYouth, allo
     onEmotionDrawn({ emotion: e.emotion, group: e.group });
     setAnimKey(k => k + 1);
     setPhase('revealed');
-    setStarted(false); setTimeLeft(TOTAL); setEnded(false); setCountdown(3);
+    setStarted(false); setTimeLeft(TOTAL); setEnded(false); setCountdown(0);
+    setWords(drawWords(WORD_COUNT)); setPicked([]); setWordsLocked(false);
     if (vibrationEnabled !== false) haptic([0, 45, 30, 60]);
   }
 
@@ -247,6 +328,7 @@ function TurnScreen({ playerName, playerGrad, playerAnimal, initialIsYouth, allo
     setPhase('idle');
     setSceneAdult(null); setSceneYouth(null); setEmo(null);
     setStarted(false); setTimeLeft(TOTAL); setEnded(false); setCountdown(0);
+    setWords([]); setPicked([]); setWordsLocked(false);
   }
 
   /* ── Header geri tuşu: sahne açıkken yeni tur gibi davranır ── */
@@ -357,7 +439,7 @@ function TurnScreen({ playerName, playerGrad, playerAnimal, initialIsYouth, allo
   const overlayColor = (group && (group.grad.match(/#[0-9A-Fa-f]{6}/) || [])[0]) || '#FAF7F2';
 
   return (
-    <div style={{ position:'relative', display:'flex', flexDirection:'column', flex:1, background:'#FAF7F2' }}>
+    <div style={{ position:'relative', display:'flex', flexDirection:'column', flex:1, minHeight:0, background:'#FAF7F2' }}>
       <TurnHeader
         playerName={playerName}
         playerGrad={playerGrad}
@@ -374,18 +456,35 @@ function TurnScreen({ playerName, playerGrad, playerAnimal, initialIsYouth, allo
         </div>
       ) : (
         <React.Fragment>
-          <div style={{ flex:1, position:'relative', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'clamp(10px,3vw,16px) clamp(16px,5vw,24px)', gap:'clamp(10px,2.5vw,14px)', overflow:'hidden' }}>
+          <div ref={midRef} style={{ flex:1, minHeight:0, position:'relative', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'clamp(10px,3vw,16px) clamp(16px,5vw,24px)', gap:'clamp(10px,2.5vw,14px)', overflow:'hidden' }}>
             <FloatingBubbles />
-            <div style={{ position:'relative', zIndex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:'clamp(10px,2.5vw,14px)' }}>
+            <div ref={cardWrapRef} style={{ position:'relative', zIndex:1, flexShrink:0, display:'flex', flexDirection:'column', alignItems:'center', gap:'clamp(10px,2.5vw,14px)', transform:`scale(${cardScale})`, transition:'transform 0.3s cubic-bezier(0.2,0.8,0.2,1)' }}>
               <SceneCard scene={scene} animKey={animKey} displayNum={usedScenes.length + 1} onChangeScene={changeScene} onChangeEmotion={changeEmotion} group={group} dark={isYouth} emotion={emotion} />
             </div>
           </div>
 
           <div style={{
             padding:'12px clamp(16px,5vw,24px) calc(env(safe-area-inset-bottom,0px) + 16px)',
-            display:'flex', alignItems:'center', justifyContent:'center',
+            display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:10,
             borderTop:'1px solid rgba(0,0,0,0.06)', background:'#FAF7F2', flexShrink:0,
           }}>
+            {!wordsLocked ? (
+              <WordPicker
+                words={words} picked={picked} max={WORD_PICK} group={group} width={cardW}
+                onToggle={toggleWord} onConfirm={lockWords}
+              />
+            ) : (
+            <React.Fragment>
+            <div style={{ width:cardW, display:'flex', flexWrap:'wrap', justifyContent:'center', gap:6 }}>
+              {picked.map(w => (
+                <span key={w} style={{
+                  padding:'5px 12px', borderRadius:100,
+                  background: group ? group.tint : '#fff',
+                  border:'1px solid rgba(0,0,0,0.06)',
+                  fontWeight:800, fontSize:14, color:'#1A1A1A',
+                }}>{w}</span>
+              ))}
+            </div>
             <div style={{ width:cardW, height:52, display:'flex', gap:10 }}>
               <div style={{
                 flex:1, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:10,
@@ -415,6 +514,8 @@ function TurnScreen({ playerName, playerGrad, playerAnimal, initialIsYouth, allo
                 {STRINGS.turn.finishBtn}
               </button>
             </div>
+            </React.Fragment>
+            )}
           </div>
         </React.Fragment>
       )}
