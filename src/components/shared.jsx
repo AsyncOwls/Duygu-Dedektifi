@@ -1,5 +1,4 @@
 import React from 'react';
-import { GROUPS } from '../data/emotions';
 import { STRINGS } from '../data/strings';
 
 /* ─── RAINBOW RINGS ─────────────────────────────────────────── */
@@ -205,8 +204,8 @@ function MiniChip({ emotion, group }) {
   );
 }
 
-/* ─── SCENE CARD ────────────────────────────────────────────── */
-export function SceneCard({ scene, animKey, displayNum, onChangeScene, onChangeEmotion, group, dark, emotion }) {
+/* ─── WORD CARD ─────────────────────────────────────────────── */
+export function WordCard({ words, animKey, displayNum, onChangeWords, onChangeEmotion, group, dark, emotion }) {
   const [entered, setEntered] = React.useState(false);
   React.useEffect(() => {
     setEntered(false);
@@ -217,17 +216,11 @@ export function SceneCard({ scene, animKey, displayNum, onChangeScene, onChangeE
     : emotion && emotion.length > 8 ? 'clamp(28px,7.5vw,37px)'
     : 'clamp(32px,9vw,44px)';
 
-  // Beyaz alan: sahne metnine göre dinamik tipografi (duygu bandı sabit kalır)
-  const bodyLen = (scene && scene.body) ? scene.body.length : 0;
-  const tier = bodyLen <= 35 ? 0 : bodyLen <= 60 ? 1 : bodyLen <= 95 ? 2 : 3;
-  const bodyFont   = ['clamp(22px,6.4vw,28px)','clamp(19px,5.4vw,24px)','clamp(16px,4.6vw,20px)','clamp(13.5px,4vw,16.5px)'][tier];
-  const bodyLH     = [1.42, 1.36, 1.3, 1.26][tier];
-  const contentGap = ['clamp(15px,3.8vw,20px)','clamp(12px,3vw,15px)','clamp(9px,2.3vw,12px)','clamp(7px,1.8vw,9px)'][tier];
-  const qFont      = ['clamp(16px,5vw,20px)','clamp(15px,4.5vw,18px)','clamp(14px,4.1vw,16px)','clamp(13px,3.7vw,14.5px)'][tier];
-  const qLH        = [1.5, 1.44, 1.38, 1.34][tier];
-
-  // Soru aynen kalır — sesli okunduğu için duygu adı yazılmaz (gizli kalsın).
-  const questionText = (scene && scene.question) ? scene.question : '';
+  // Beyaz alan: en uzun kelimeye göre dinamik tipografi (duygu bandı sabit kalır)
+  const longest = (words || []).reduce((m, w) => Math.max(m, w.length), 0);
+  const tier = longest <= 8 ? 0 : longest <= 12 ? 1 : longest <= 16 ? 2 : 3;
+  const wordFont = ['clamp(26px,7.4vw,34px)','clamp(22px,6.4vw,29px)','clamp(19px,5.4vw,24px)','clamp(16px,4.6vw,20px)'][tier];
+  const rowGap   = ['clamp(16px,4vw,22px)','clamp(13px,3.3vw,18px)','clamp(11px,2.8vw,15px)','clamp(9px,2.3vw,12px)'][tier];
   return (
     <div style={{
       width:'min(280px, 72vw)', aspectRatio:'5/8.4',
@@ -271,7 +264,7 @@ export function SceneCard({ scene, animKey, displayNum, onChangeScene, onChangeE
         flex:'0 0 auto',
       }}/>
 
-      {/* ALT beyaz alan: sahne metni + soru */}
+      {/* ALT beyaz alan: 3 destek kelimesi */}
       <div style={{
         flex:1, position:'relative', minHeight:0, overflow:'hidden',
         padding:'clamp(20px,4.5vw,26px) clamp(22px,6vw,30px) clamp(12px,3vw,16px)',
@@ -284,59 +277,31 @@ export function SceneCard({ scene, animKey, displayNum, onChangeScene, onChangeE
           №{String(displayNum).padStart(2,'0')}
         </div>
 
-        {/* Ana içerik — dikey ortalı */}
-        <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'center', gap:contentGap }}>
-          {/* Birincil okuma: sahne anlatısı */}
-          <p style={{
-            fontSize:bodyFont,
-            lineHeight:bodyLH,
-            color: dark ? '#fff' : '#1A1A1A',
-            fontWeight:700,
-            margin:0,
-            letterSpacing:'-0.015em',
-          }}>
-            {scene.body}
-          </p>
-          {/* Renk kodlu ayraç — sahneden soruya geçiş */}
-          <div style={{
-            width:30, height:3, borderRadius:3, flexShrink:0,
-            background: group ? group.grad : (dark ? 'rgba(255,255,255,0.25)' : '#E2DED6'),
-            opacity:0.9,
-          }}/>
-          {/* İkincil okuma: yansıtma sorusu */}
-          <p style={{
-            fontWeight:600,
-            fontStyle:'italic',
-            fontSize:qFont,
-            lineHeight:qLH,
-            letterSpacing:'0',
-            color: dark ? 'rgba(255,255,255,0.62)' : '#7C7C7C',
-            margin:0,
-          }}>
-            {questionText}
-          </p>
+        {/* Ana içerik — dikey ortalı, 3 kelime alt alta */}
+        <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'center', gap:rowGap }}>
+          {(words || []).map((w, i) => (
+            <div key={i} style={{ display:'flex', alignItems:'baseline', gap:'clamp(8px,2.2vw,12px)' }}>
+              <span style={{
+                fontSize:'clamp(13px,3.6vw,16px)', fontWeight:900, flexShrink:0,
+                color: group ? (group.grad.match(/#[0-9A-Fa-f]{6}/) || [])[0] || '#1A1A1A' : (dark ? 'rgba(255,255,255,0.4)' : '#C8C4BC'),
+              }}>{i + 1}</span>
+              <p style={{
+                fontSize:wordFont,
+                lineHeight:1.2,
+                color: dark ? '#fff' : '#1A1A1A',
+                fontWeight:800,
+                margin:0,
+                letterSpacing:'-0.015em',
+              }}>{w}</p>
+            </div>
+          ))}
         </div>
 
-        {/* Alt satır: renk noktaları (sol) + sahne ↻ (sağ, üstteki ↻ ile aynı sağ kenar) */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, marginTop:'clamp(8px,2vw,12px)', marginRight:'calc(clamp(14px,3.5vw,20px) - clamp(22px,6vw,30px))', flexShrink:0 }}>
-          <div style={{ display:'flex', gap:7, alignItems:'center' }}>
-            {scene.groups && scene.groups.map(key => {
-              const g = (typeof GROUPS !== 'undefined') && GROUPS.find(x => x.key === key);
-              if (!g) return null;
-              const active = group && key === group.key;
-              return <span key={key} style={{
-                width: active ? 15 : 11, height: active ? 15 : 11,
-                borderRadius:'50%', background:g.grad, flexShrink:0,
-                boxShadow: active
-                  ? `0 0 0 2px ${dark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.08)'}, 0 1px 3px rgba(0,0,0,0.22)`
-                  : '0 1px 2px rgba(0,0,0,0.12)',
-                transition:'all 0.2s',
-              }}/>;
-            })}
-          </div>
-          {onChangeScene && (
+        {/* Alt satır: sağda kelimeleri değiştir ↻ */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', marginTop:'clamp(8px,2vw,12px)', marginRight:'calc(clamp(14px,3.5vw,20px) - clamp(22px,6vw,30px))', flexShrink:0 }}>
+          {onChangeWords && (
             <IconChangeBtn
-              onClick={onChangeScene}
+              onClick={onChangeWords}
               accentGrad={group && group.grad}
               accentText={dark ? '#1A1A1A' : (group && group.text)}
               invertPress={dark}

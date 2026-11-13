@@ -1,13 +1,13 @@
 import React from 'react';
 import { GROUPS } from '../data/emotions';
-import { SCENES, SCENES_GENC } from '../data/scenes';
+import { WORD_POOLS } from '../data/words';
 import { IS_IOS } from '../data/players';
 import { STRINGS } from '../data/strings';
-import { SceneCard, TurnHeader } from '../components/shared';
+import { WordCard, TurnHeader } from '../components/shared';
 
 /* ─── TURN SCREEN ───────────────────────────────────────────────
-   Duygu + sahne tek ekranda. Telefon sallanınca (veya dokununca)
-   oyunda daha önce çıkmamış bir sahne + ona uygun bir duygu çekilir. */
+   Duygu + 3 destek kelimesi tek ekranda. Telefon sallanınca (veya
+   dokununca) rastgele bir duygu ve ona uygun 3 kelime çekilir. */
 
 var ALL_EMOTIONS = GROUPS.flatMap(g => g.emotions.map(e => ({ emotion: e, group: g })));
 
@@ -58,31 +58,58 @@ function haptic(pattern) {
   if (IS_IOS) iosHaptic();
 }
 
-function sceneKey(s) { return s.title; }
-
-// Sahneye uygun (grubu sahnenin gruplarında olan) bir duygu seç.
-function pickEmotionForScene(sceneGroups, excludeEmotion) {
-  let avail = ALL_EMOTIONS.filter(it => sceneGroups.includes(it.group.key) && it.emotion !== excludeEmotion);
-  if (!avail.length) avail = ALL_EMOTIONS.filter(it => sceneGroups.includes(it.group.key));
+// Rastgele bir duygu seç (opsiyonel olarak bir duyguyu hariç tutar).
+function pickEmotion(excludeEmotion) {
+  let avail = ALL_EMOTIONS.filter(it => it.emotion !== excludeEmotion);
   if (!avail.length) avail = ALL_EMOTIONS;
   return avail[Math.floor(Math.random() * avail.length)];
 }
 
-// Duygu grubuna uyumlu, oyunda çıkmamış (mümkünse) bir sahne seç.
-function pickScene(pool, groupKey, usedKeys, excludeKey) {
-  let compat = pool.filter(s => s.groups && s.groups.includes(groupKey));
-  if (compat.length < 3) compat = pool.slice();
-  let avail = compat.filter(s => usedKeys.indexOf(sceneKey(s)) === -1 && sceneKey(s) !== excludeKey);
-  if (!avail.length) avail = compat.filter(s => sceneKey(s) !== excludeKey);
-  if (!avail.length) avail = compat;
-  return avail[Math.floor(Math.random() * avail.length)];
+// Ağırlıklı rastgele seçim: "orta" zorluk kelimeler 3x şansla seçilir,
+// böylece turların çoğu ne çok kolay ne çok zor kelimelerden oluşur.
+function weightedTake(pool) {
+  const weights = pool.map(w => w.difficulty === 2 ? 3 : 1);
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < pool.length; i++) {
+    if (r < weights[i]) return i;
+    r -= weights[i];
+  }
+  return pool.length - 1;
 }
 
-// Oyunda hiç çıkmamış herhangi bir sahne (tükenince havuzu sıfırla).
-function pickFreshScene(pool, usedKeys) {
-  let avail = pool.filter(s => usedKeys.indexOf(sceneKey(s)) === -1);
-  if (!avail.length) avail = pool.slice();
-  return avail[Math.floor(Math.random() * avail.length)];
+// Bir duygu grubuna uygun, oyunda mümkünse hiç çıkmamış 3 kelime seç.
+// Sonuçta en fazla 1 kolay + en fazla 1 zor kelime bulunur (dolayısıyla
+// her zaman en az 1 orta zorluk kelime vardır) — set ne tamamen kolay
+// ne tamamen zor olur.
+function pickWordsForGroup(groupKey, usedWords, excludeWords) {
+  const pool = WORD_POOLS[groupKey] || [];
+  const exclude = excludeWords || [];
+  let avail = pool.filter(w => usedWords.indexOf(w.word) === -1 && exclude.indexOf(w.word) === -1);
+  if (avail.length < 3) avail = pool.filter(w => exclude.indexOf(w.word) === -1);
+  if (avail.length < 3) avail = pool.slice();
+
+  let remaining = avail.slice();
+  const picked = [];
+  for (let i = 0; i < 3 && remaining.length; i++) {
+    const idx = weightedTake(remaining);
+    picked.push(remaining[idx]);
+    remaining.splice(idx, 1);
+  }
+
+  [1, 3].forEach(extremeDifficulty => {
+    let seen = 0;
+    for (let i = 0; i < picked.length; i++) {
+      if (picked[i].difficulty !== extremeDifficulty) continue;
+      seen++;
+      if (seen <= 1) continue;
+      const mediumCandidates = avail.filter(w => w.difficulty === 2 && picked.indexOf(w) === -1);
+      if (!mediumCandidates.length) continue;
+      picked[i] = mediumCandidates[Math.floor(Math.random() * mediumCandidates.length)];
+    }
+  });
+
+  return picked.map(w => w.word);
 }
 
 // Arka planda süzülen 7 duygu rengi baloncuğu
@@ -187,18 +214,16 @@ function ShakePrompt({ playerGrad, playerAnimal, onDraw }) {
   );
 }
 
-export function TurnScreen({ playerName, playerGrad, playerAnimal, initialIsYouth, allowAgeSwitch, onEmotionDrawn, onTurnEnd, onSceneUsed, usedScenes, onListOpen, onScoreOpen, onHome, timerDuration, vibrationEnabled, settings, onSettingsChange, groupName }) {
-  /* ── Durum: yetişkin + genç sahne ayrı tutulur (toggle sabit kalsın) ── */
+export function TurnScreen({ playerName, playerGrad, playerAnimal, initialIsYouth, allowAgeSwitch, onEmotionDrawn, onTurnEnd, onWordsUsed, usedWords, onListOpen, onScoreOpen, onHome, timerDuration, vibrationEnabled, settings, onSettingsChange, groupName }) {
+  /* ── Durum ── */
   const [isYouth, setIsYouth] = React.useState(!!initialIsYouth);
   const [phase, setPhase] = React.useState('idle'); // 'idle' | 'revealed'
-  const [sceneAdult, setSceneAdult] = React.useState(null);
-  const [sceneYouth, setSceneYouth] = React.useState(null);
+  const [words, setWords] = React.useState(null);   // [kelime1, kelime2, kelime3]
   const [emo, setEmo] = React.useState(null);        // { emotion, group }
   const [animKey, setAnimKey] = React.useState(0);
   const [timeUp, setTimeUp] = React.useState(false);
   const emotion = emo && emo.emotion;
   const group = emo && emo.group;
-  const scene = isYouth ? sceneYouth : sceneAdult;
 
   /* ── Sayaç ── */
   const TOTAL = [60, 90, 120].includes(timerDuration) ? timerDuration : 90;
@@ -216,7 +241,7 @@ export function TurnScreen({ playerName, playerGrad, playerAnimal, initialIsYout
   }, [phase, countdown, started]);
 
   function finishTurn() {
-    if (scene) onSceneUsed(sceneKey(scene));
+    if (words) onWordsUsed(words);
     setTimeUp(true);
     if (vibrationEnabled !== false) haptic([80, 60, 100, 60, 150]);
   }
@@ -234,14 +259,11 @@ export function TurnScreen({ playerName, playerGrad, playerAnimal, initialIsYout
     finishTurn();
   }
 
-  /* ── Çekme: çıkmamış sahne + ona uygun duygu; iki yaş için de sahne hazırla ── */
+  /* ── Çekme: rastgele bir duygu + ona uygun grup içinden 3 kelime ── */
   function drawNew() {
-    const curPool = isYouth ? SCENES_GENC : SCENES;
-    const curScene = pickFreshScene(curPool, usedScenes);
-    const e = pickEmotionForScene(curScene.groups, null);
-    const adultSc = isYouth ? pickScene(SCENES, e.group.key, usedScenes, null) : curScene;
-    const youthSc = isYouth ? curScene : pickScene(SCENES_GENC, e.group.key, usedScenes, null);
-    setSceneAdult(adultSc); setSceneYouth(youthSc); setEmo(e);
+    const e = pickEmotion(null);
+    const w = pickWordsForGroup(e.group.key, usedWords, null);
+    setEmo(e); setWords(w);
     onEmotionDrawn({ emotion: e.emotion, group: e.group });
     setAnimKey(k => k + 1);
     setPhase('revealed');
@@ -252,40 +274,35 @@ export function TurnScreen({ playerName, playerGrad, playerAnimal, initialIsYout
   /* ── Yeni tur: "Telefonu Döndür/Salla" ekranına geri dön ── */
   function backToIdle() {
     setPhase('idle');
-    setSceneAdult(null); setSceneYouth(null); setEmo(null);
+    setWords(null); setEmo(null);
     setStarted(false); setTimeLeft(TOTAL); setEnded(false); setCountdown(0);
   }
 
-  /* ── Header geri tuşu: sahne açıkken yeni tur gibi davranır ── */
+  /* ── Header geri tuşu: kart açıkken yeni tur gibi davranır ── */
   function handleBack() {
     if (phase === 'revealed') backToIdle();
     else onHome();
   }
 
-  /* ── Sahneyi değiştir: yalnız aktif yaşın sahnesi değişir (diğeri sabit) ── */
-  function changeScene() {
+  /* ── Kelimeleri değiştir: duygu sabit kalır, aynı gruptan yeni 3 kelime çekilir ── */
+  function changeWords() {
     if (!emo) return;
-    if (isYouth) {
-      setSceneYouth(pickScene(SCENES_GENC, group.key, usedScenes, sceneYouth && sceneKey(sceneYouth)));
-    } else {
-      setSceneAdult(pickScene(SCENES, group.key, usedScenes, sceneAdult && sceneKey(sceneAdult)));
-    }
+    setWords(pickWordsForGroup(group.key, usedWords, words));
     setAnimKey(k => k + 1);
     if (vibrationEnabled !== false) haptic(25);
   }
 
-  /* ── Duyguyu değiştir: gösterilen sahne sabit; diğer yaşın sahnesi yeni duyguya uyarlanır ── */
+  /* ── Duyguyu değiştir: tamamen yeni bir duygu + ona uygun 3 kelime çekilir ── */
   function changeEmotion() {
-    if (!scene) return;
-    const e = pickEmotionForScene(scene.groups, emotion);
+    if (!emo) return;
+    const e = pickEmotion(emotion);
     setEmo(e);
-    if (isYouth) setSceneAdult(pickScene(SCENES, e.group.key, usedScenes, null));
-    else setSceneYouth(pickScene(SCENES_GENC, e.group.key, usedScenes, null));
+    setWords(pickWordsForGroup(e.group.key, usedWords, null));
     onEmotionDrawn({ emotion: e.emotion, group: e.group });
     if (vibrationEnabled !== false) haptic(25);
   }
 
-  /* ── Yaş geçişi: sahne yeniden seçilmez, sadece saklanan sahne gösterilir ── */
+  /* ── Yaş geçişi: kart görünümünü (açık/koyu) değiştirir ── */
   function handleAge(v) {
     setIsYouth(v);
     if (phase === 'revealed') setAnimKey(k => k + 1);
@@ -384,7 +401,7 @@ export function TurnScreen({ playerName, playerGrad, playerAnimal, initialIsYout
           <div style={{ flex:1, position:'relative', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'clamp(10px,3vw,16px) clamp(16px,5vw,24px)', gap:'clamp(10px,2.5vw,14px)', overflow:'hidden' }}>
             <FloatingBubbles />
             <div style={{ position:'relative', zIndex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:'clamp(10px,2.5vw,14px)' }}>
-              <SceneCard scene={scene} animKey={animKey} displayNum={usedScenes.length + 1} onChangeScene={changeScene} onChangeEmotion={changeEmotion} group={group} dark={isYouth} emotion={emotion} />
+              <WordCard words={words} animKey={animKey} displayNum={Math.floor(usedWords.length / 3) + 1} onChangeWords={changeWords} onChangeEmotion={changeEmotion} group={group} dark={isYouth} emotion={emotion} />
             </div>
           </div>
 

@@ -13,7 +13,7 @@ export function AgeSelectScreen({ onSelect, onBack }) {
       value: 'adult',
       emoji: '🎯',
       title: 'Yetişkin',
-      desc: 'Yetişkin sahneler',
+      desc: 'Klasik kart teması',
       grad: 'linear-gradient(145deg,#FF6B7A,#E63946)',
       shadow: 'rgba(230,57,70,0.45)',
       textColor: '#fff',

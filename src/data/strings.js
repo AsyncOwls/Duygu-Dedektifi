@@ -91,7 +91,7 @@ export var STRINGS = {
   turn: {
     shakeTitle:   'Telefonu Salla!',
     rotateTitle:  'Telefonu Döndür!',
-    shakeSub:     'duygu + sahne kartın gelsin',
+    shakeSub:     'duygu + 3 kelime kartın gelsin',
     shakeTap:     'veya dokun',
     drawBtn:      'Salla ya da Seç →',
     titleReady:   'Sahneni Oyna.',

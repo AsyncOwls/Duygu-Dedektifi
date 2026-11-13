@@ -75,7 +75,7 @@ export default function App() {
   const [sessionStorageName, setSessionStorageName] = React.useState('');
   const [sessionGameMode, setSessionGameMode] = React.useState('group');
   const [sessions, setSessions] = React.useState(loadAllSessions);
-  const [usedScenes, setUsedScenes] = React.useState([]);
+  const [usedWords, setUsedWords] = React.useState([]);
   // Oyuna kayıtlı oyunlar arşivinden girildiyse, çıkışta arşive geri dönmek için.
   const [enteredFromArchive, setEnteredFromArchive] = React.useState(false);
 
@@ -90,16 +90,19 @@ export default function App() {
         gameMode: sessionGameMode,
         players,
         currentPlayerIdx,
-        usedScenes,
+        usedWords,
         updatedAt: Date.now(),
       };
       persistSession(session);
       setSessions(loadAllSessions());
     }
-  }, [players, currentPlayerIdx, usedScenes]);
+  }, [players, currentPlayerIdx, usedWords]);
 
-  function markSceneUsed(key) {
-    setUsedScenes(prev => prev.indexOf(key) === -1 ? [...prev, key] : prev);
+  function markWordsUsed(newWords) {
+    setUsedWords(prev => {
+      const additions = newWords.filter(w => prev.indexOf(w) === -1);
+      return additions.length ? [...prev, ...additions] : prev;
+    });
   }
 
   function startGame(playerNames, gameName) {
@@ -132,8 +135,8 @@ export default function App() {
     setPrevPlayers(null);
     setCurrentPlayerIdx(0);
     setEmotionData(null);
-    setUsedScenes([]);
-    persistSession({ id, name: storageName, gameMode: settings.gameMode, players: newPlayers, currentPlayerIdx: 0, usedScenes: [], updatedAt: Date.now() });
+    setUsedWords([]);
+    persistSession({ id, name: storageName, gameMode: settings.gameMode, players: newPlayers, currentPlayerIdx: 0, usedWords: [], updatedAt: Date.now() });
     setSessions(loadAllSessions());
     setScreen('playerList');
   }
@@ -148,7 +151,7 @@ export default function App() {
       isYouth: p.isYouth !== undefined ? p.isYouth : settings.isYouth,
     })));
     setCurrentPlayerIdx(session.currentPlayerIdx);
-    setUsedScenes(session.usedScenes || []);
+    setUsedWords(session.usedWords || session.usedScenes || []);
     setPrevPlayers(null);
     setEmotionData(null);
     setScreen('playerList');
@@ -283,8 +286,8 @@ export default function App() {
           vibrationEnabled={settings.vibration}
           onEmotionDrawn={d => setEmotionData(d)}
           onTurnEnd={() => setScreen('roundResult')}
-          usedScenes={usedScenes}
-          onSceneUsed={markSceneUsed}
+          usedWords={usedWords}
+          onWordsUsed={markWordsUsed}
           onListOpen={() => setShowList(true)}
           onScoreOpen={() => setShowScoreboard(true)}
           settings={settings}
