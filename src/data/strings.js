@@ -18,14 +18,14 @@ export var STRINGS = {
         tag:     'ADIM 1',
         title:   'Salla',
         titleIos:'Döndür',
-        caption: 'Duygu + sahne gelsin',
+        caption: 'Duygu + 5 kelime gelsin',
       },
       {
         grad:    'linear-gradient(155deg,#2ED573,#1DB954)',
         shadow:  'rgba(30,185,84,0.5)',
         tag:     'ADIM 2',
         title:   'Oyna',
-        caption: 'Konuş, canlandır',
+        caption: '3 kelimeyle hikâye kur',
         pills:   ['⏱️ 90 sn', '🙊 duygu söyleme'],
       },
       {
@@ -86,17 +86,24 @@ export var STRINGS = {
     finish:   'Tamamla',
     ageAdult: 'YETİŞKİN',
     ageYouth: 'GENÇ',
+    ageChild: 'ÇOCUK',
+    ageBadge: { yetiskin:'YETİŞKİN', genc:'GENÇ', cocuk:'ÇOCUK' },
   },
 
   turn: {
     shakeTitle:   'Telefonu Salla!',
     rotateTitle:  'Telefonu Döndür!',
-    shakeSub:     'duygu + sahne kartın gelsin',
+    shakeSub:     'duygu kartın gelsin',
     shakeTap:     'veya dokun',
     drawBtn:      'Salla ya da Seç →',
     titleReady:   'Sahneni Oyna.',
     reshakeHint:  'Yeniden çekmek için salla 🎲',
     finishBtn:    'Tamamla',
+    // Kelime kartı: 5 ipucundan 3'ü seçilir
+    pickTitle:    "3'ünü seç",
+    pickCount:    (n) => `${n}/3 seçildi`,
+    pickStart:    'Başla →',
+    storyTitle:   'Hikâyeni kur',
   },
 
   roundResult: {
@@ -106,6 +113,7 @@ export var STRINGS = {
     nobody:   'Kimse bilemedi',
     retry:    'Yeniden',
     confirm:  'Onayla →',
+    noteTitle: 'Dedektif notu',
   },
 
   scoreboard: {
@@ -141,6 +149,8 @@ export var STRINGS = {
     ageAdult:   'Yetişkin',
     ageMixed:   'Karma',
     ageYouth:   'Genç',
+    ageChild:   'Çocuk',
+    ageOptions: [ { value:'yetiskin', label:'Yetişkin' }, { value:'genc', label:'Genç' }, { value:'cocuk', label:'Çocuk' } ],
     timerLabel: 'SÜRE',
   },
 

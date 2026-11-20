@@ -1,6 +1,18 @@
 /* eslint-disable no-unused-vars */
 export var MAX_PLAYERS = 40;
 
+// Yaş kategorileri — kart setleri (emotionCards.js) bu anahtarlarla seçilir.
+export var AGES = ['cocuk', 'genc', 'yetiskin'];
+
+// ageMode (yaş seçim ekranı) → sabit kategori; 'mixed' ise oyuncu başına seçilir.
+export var AGE_BY_MODE = { child: 'cocuk', youth: 'genc', adult: 'yetiskin' };
+
+// Oyuncunun yaş kategorisi (eski kayıtlar: isYouth boolean).
+export function playerAge(p) {
+  if (p && AGES.indexOf(p.age) !== -1) return p.age;
+  return p && p.isYouth ? 'genc' : 'yetiskin';
+}
+
 // iOS tespiti (sallama yerine "döndür", titreşim/izin farkları için). Tüm ekranlar kullanır.
 export var IS_IOS = typeof navigator !== 'undefined' && (
   /iP(hone|ad|od)/.test(navigator.userAgent) ||

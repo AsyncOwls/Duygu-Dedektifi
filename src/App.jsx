@@ -1,6 +1,6 @@
 import React from 'react';
 import { GROUPS } from './data/emotions';
-import { PLAYER_ANIMALS, PLAYER_GRADS } from './data/players';
+import { PLAYER_ANIMALS, PLAYER_GRADS, AGE_BY_MODE, playerAge } from './data/players';
 import { EmotionListOverlay } from './screens/EmotionListOverlay';
 import { TutorialScreen } from './screens/TutorialScreen';
 import { WelcomeScreen } from './screens/WelcomeScreen';
@@ -24,7 +24,7 @@ function loadSettings() {
       gameMode:      s.gameMode || 'group',
       sound:         s.sound !== false,
       vibration:     s.vibration !== false,
-      ageMode:       ['adult','mixed','youth'].includes(ageMode) ? ageMode : 'adult',
+      ageMode:       ['adult','mixed','youth','child'].includes(ageMode) ? ageMode : 'adult',
       timerDuration: [60, 90, 120].includes(s.timerDuration) ? s.timerDuration : 90,
     };
   } catch {
@@ -75,7 +75,7 @@ export default function App() {
   const [sessionStorageName, setSessionStorageName] = React.useState('');
   const [sessionGameMode, setSessionGameMode] = React.useState('group');
   const [sessions, setSessions] = React.useState(loadAllSessions);
-  const [usedScenes, setUsedScenes] = React.useState([]);
+  const [usedEmotions, setUsedEmotions] = React.useState([]);
   // Oyuna kayıtlı oyunlar arşivinden girildiyse, çıkışta arşive geri dönmek için.
   const [enteredFromArchive, setEnteredFromArchive] = React.useState(false);
 
@@ -90,16 +90,16 @@ export default function App() {
         gameMode: sessionGameMode,
         players,
         currentPlayerIdx,
-        usedScenes,
+        usedEmotions,
         updatedAt: Date.now(),
       };
       persistSession(session);
       setSessions(loadAllSessions());
     }
-  }, [players, currentPlayerIdx, usedScenes]);
+  }, [players, currentPlayerIdx, usedEmotions]);
 
-  function markSceneUsed(key) {
-    setUsedScenes(prev => prev.indexOf(key) === -1 ? [...prev, key] : prev);
+  function markEmotionUsed(key) {
+    setUsedEmotions(prev => prev.indexOf(key) === -1 ? [...prev, key] : prev);
   }
 
   function startGame(playerNames, gameName) {
@@ -111,14 +111,13 @@ export default function App() {
         : flatNames.slice(0, 2).join(', ') + ' +' + (flatNames.length - 2));
     const newPlayers = playerNames.map(entry => {
       const playerName = typeof entry === 'string' ? entry : entry.name;
-      const isYouth = settings.ageMode === 'youth' ? true
-        : settings.ageMode === 'adult' ? false
-        : !!(entry.isYouth); // mixed: per-player
+      // Sabit modda herkes aynı kategoride; karma modda oyuncu başına seçilir.
+      const age = AGE_BY_MODE[settings.ageMode] || playerAge(entry);
       return {
         name: playerName, score: 0,
         told: 0, successTold: 0, failTold: 0,
         guessed: 0, guessedColors: [], rainbowBonus: false,
-        isYouth,
+        age,
         groupName: entry.groupName || null,
         groupIdx: entry.groupIdx != null ? entry.groupIdx : null,
       };
@@ -132,8 +131,8 @@ export default function App() {
     setPrevPlayers(null);
     setCurrentPlayerIdx(0);
     setEmotionData(null);
-    setUsedScenes([]);
-    persistSession({ id, name: storageName, gameMode: settings.gameMode, players: newPlayers, currentPlayerIdx: 0, usedScenes: [], updatedAt: Date.now() });
+    setUsedEmotions([]);
+    persistSession({ id, name: storageName, gameMode: settings.gameMode, players: newPlayers, currentPlayerIdx: 0, usedEmotions: [], updatedAt: Date.now() });
     setSessions(loadAllSessions());
     setScreen('playerList');
   }
@@ -145,10 +144,10 @@ export default function App() {
     setSessionGameMode(session.gameMode || 'group');
     setPlayers((session.players || []).map(p => ({
       ...p,
-      isYouth: p.isYouth !== undefined ? p.isYouth : settings.isYouth,
+      age: playerAge(p),
     })));
     setCurrentPlayerIdx(session.currentPlayerIdx);
-    setUsedScenes(session.usedScenes || []);
+    setUsedEmotions(session.usedEmotions || []);
     setPrevPlayers(null);
     setEmotionData(null);
     setScreen('playerList');
@@ -160,7 +159,7 @@ export default function App() {
   }
 
   function handlePlayerAgeChange(idx, value) {
-    setPlayers(prev => prev.map((p, i) => i === idx ? { ...p, isYouth: value } : p));
+    setPlayers(prev => prev.map((p, i) => i === idx ? { ...p, age: value } : p));
   }
 
   function handleHome() {
@@ -276,15 +275,15 @@ export default function App() {
           playerName={players[currentPlayerIdx]?.name}
           playerGrad={PLAYER_GRADS[currentPlayerIdx % PLAYER_GRADS.length]}
           playerAnimal={PLAYER_ANIMALS[currentPlayerIdx % PLAYER_ANIMALS.length]}
-          initialIsYouth={players[currentPlayerIdx]?.isYouth ?? (settings.ageMode === 'youth')}
+          initialAge={players[currentPlayerIdx] ? playerAge(players[currentPlayerIdx]) : (AGE_BY_MODE[settings.ageMode] || 'yetiskin')}
           allowAgeSwitch={settings.ageMode === 'mixed'}
           groupName={players[currentPlayerIdx]?.groupName || null}
           timerDuration={settings.timerDuration}
           vibrationEnabled={settings.vibration}
           onEmotionDrawn={d => setEmotionData(d)}
           onTurnEnd={() => setScreen('roundResult')}
-          usedScenes={usedScenes}
-          onSceneUsed={markSceneUsed}
+          usedEmotions={usedEmotions}
+          onEmotionUsed={markEmotionUsed}
           onListOpen={() => setShowList(true)}
           onScoreOpen={() => setShowScoreboard(true)}
           settings={settings}
@@ -296,6 +295,7 @@ export default function App() {
         <RoundResult
           players={players}
           currentPlayerIdx={currentPlayerIdx}
+          emotionData={emotionData}
           onConfirm={handleRoundResult}
           onRetry={() => { setEmotionData(null); setScreen('turn'); }}
         />

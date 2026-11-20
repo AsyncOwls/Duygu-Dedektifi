@@ -1,6 +1,7 @@
 import React from 'react';
 import { PLAYER_ANIMALS, PLAYER_GRADS } from '../data/players';
 import { STRINGS } from '../data/strings';
+import { getEmotionCard } from '../data/emotionCards';
 
 function SelectedCheck() {
   return (
@@ -15,7 +16,7 @@ function SelectedCheck() {
   );
 }
 
-export function RoundResult({ players, currentPlayerIdx, onConfirm, onRetry }) {
+export function RoundResult({ players, currentPlayerIdx, emotionData, onConfirm, onRetry }) {
   // Çoklu seçim: birden fazla oyuncu bilebilir.
   const [selectedPlayers, setSelectedPlayers] = React.useState([]);
   // Özel seçim: 'none' (kimse bilmedi) | 'retry' (ikinci şans) | null
@@ -152,6 +153,7 @@ export function RoundResult({ players, currentPlayerIdx, onConfirm, onRetry }) {
   ];
 
   const anlatanGrad = PLAYER_GRADS[currentPlayerIdx % PLAYER_GRADS.length];
+  const noteCard = emotionData && emotionData.group ? getEmotionCard(emotionData.emotion, emotionData.age) : null;
 
   return (
     <div style={{ display:'flex', flexDirection:'column', flex:1, background:'#FAF7F2', overflow:'hidden' }}>
@@ -175,6 +177,24 @@ export function RoundResult({ players, currentPlayerIdx, onConfirm, onRetry }) {
             <span style={{ fontSize:9, letterSpacing:'0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.7)', fontWeight:700 }}>{STRINGS.roundResult.telling}</span>
           </div>
         </div>
+        {/* Dedektif notu: cevap açıklandıktan sonra duygunun psikolog notu */}
+        {noteCard && (
+          <div style={{
+            marginTop:14, display:'flex', gap:12, alignItems:'flex-start',
+            background:'#fff', borderRadius:18, padding:'12px 14px',
+            border:'1px solid rgba(0,0,0,0.06)', boxShadow:'0 4px 14px -6px rgba(0,0,0,0.12)',
+            animation:'pop-in 0.45s cubic-bezier(0.2,0.8,0.2,1) both',
+          }}>
+            <span style={{ width:6, alignSelf:'stretch', borderRadius:6, background: emotionData.group.grad, flexShrink:0 }}/>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ display:'flex', alignItems:'baseline', gap:8, flexWrap:'wrap' }}>
+                <span style={{ fontWeight:900, fontSize:16, color:'#1A1A1A' }}>{emotionData.emotion}</span>
+                <span style={{ fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', color:'#A0A0A0', fontWeight:800 }}>🔍 {STRINGS.roundResult.noteTitle}</span>
+              </div>
+              <div style={{ fontSize:13.5, lineHeight:1.4, color:'#5A5A5A', fontWeight:600, marginTop:3 }}>{noteCard.not}</div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div style={{ flex:1, padding:'0 clamp(20px,5vw,28px)', overflowY:'auto', display:'flex', flexDirection:'column', justifyContent: isGroup ? 'flex-start' : 'center' }}>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { PLAYER_ANIMALS, PLAYER_GRADS } from '../data/players';
+import { PLAYER_ANIMALS, PLAYER_GRADS, playerAge } from '../data/players';
 import { STRINGS } from '../data/strings';
 import { RainbowRings } from '../components/shared';
 
@@ -254,7 +254,7 @@ export function PlayerList({ players, currentPlayerIdx, sessionName, onPlayerTap
                       background:'rgba(255,255,255,0.22)',
                       color:'#fff', border:'1px solid rgba(255,255,255,0.35)', flexShrink:0,
                     }}>
-                      {p.isYouth ? STRINGS.scene.ageYouth : STRINGS.scene.ageAdult}
+                      {STRINGS.scene.ageBadge[playerAge(p)]}
                     </span>
                   )}
                   <span style={{ fontFamily:'Nunito', fontWeight:900, fontSize:13, color:'rgba(255,255,255,0.8)', flexShrink:0 }}>

@@ -75,7 +75,7 @@ function DeckVisual({ icon, label, sub, onClick, playerGrad }) {
 }
 
 /* ─── ICON CHANGE BTN ───────────────────────────────────────── */
-function IconChangeBtn({ onClick, onMouseDown, onTouchStart, style, accentGrad, accentText, invertPress }) {
+export function IconChangeBtn({ onClick, onMouseDown, onTouchStart, style, accentGrad, accentText, invertPress }) {
   const [hov, setHov] = React.useState(false);
   const [pressed, setPressed] = React.useState(false);
   const hasAccent = !!accentGrad;
@@ -206,7 +206,7 @@ function MiniChip({ emotion, group }) {
 }
 
 /* ─── SCENE CARD ────────────────────────────────────────────── */
-export function SceneCard({ scene, animKey, displayNum, onChangeScene, onChangeEmotion, group, dark, emotion }) {
+export function SceneCard({ scene, animKey, displayNum, onChangeScene, onChangeEmotion, group, dark, emotion, width }) {
   const [entered, setEntered] = React.useState(false);
   React.useEffect(() => {
     setEntered(false);
@@ -230,7 +230,7 @@ export function SceneCard({ scene, animKey, displayNum, onChangeScene, onChangeE
   const questionText = (scene && scene.question) ? scene.question : '';
   return (
     <div style={{
-      width:'min(280px, 72vw)', aspectRatio:'5/8.4',
+      width: width || 'min(280px, 72vw)', aspectRatio:'5/8.4',
       borderRadius:24, flexShrink:0,
       background: dark ? '#1A1A1A' : '#fff',
       boxShadow:'0 48px 96px -24px rgba(0,0,0,0.32), 0 16px 32px -12px rgba(0,0,0,0.12)',

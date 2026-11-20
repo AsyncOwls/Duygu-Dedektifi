@@ -69,9 +69,9 @@ function SlideVisual({ index }) {
             <span style={{ fontSize:19, lineHeight:1 }}>🎭</span>
             <span style={{ width:38, height:7, borderRadius:4, background:'linear-gradient(90deg,#FF6B7A,#FFC93C)' }}/>
           </div>
-          {/* sahne card */}
+          {/* kelime kartı */}
           <div style={{ display:'flex', alignItems:'center', gap:9, background:'rgba(255,255,255,0.92)', borderRadius:13, padding:'9px 13px', boxShadow:'0 8px 22px -8px rgba(0,0,0,0.25)' }}>
-            <span style={{ fontSize:19, lineHeight:1 }}>🎬</span>
+            <span style={{ fontSize:19, lineHeight:1 }}>🧩</span>
             <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
               <span style={{ width:48, height:4, borderRadius:2, background:'rgba(0,0,0,0.2)' }}/>
               <span style={{ width:32, height:4, borderRadius:2, background:'rgba(0,0,0,0.12)' }}/>

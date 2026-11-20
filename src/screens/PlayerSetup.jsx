@@ -1,6 +1,13 @@
 import React from 'react';
-import { MAX_PLAYERS, PLAYER_ANIMALS, PLAYER_GRADS } from '../data/players';
+import { MAX_PLAYERS, PLAYER_ANIMALS, PLAYER_GRADS, AGES } from '../data/players';
 import { STRINGS } from '../data/strings';
+
+// Karma modda oyuncu kartındaki yaş rozeti rengi
+var AGE_BADGE_BG = {
+  yetiskin: 'rgba(255,255,255,0.28)',
+  genc:     'linear-gradient(135deg,#3D5AFE,#5FB8FF)',
+  cocuk:    'linear-gradient(135deg,#2ED573,#14B859)',
+};
 
 export function PlayerSetup({ onStart, onBack, ageMode, gameMode }) {
   const [gameName, setGameName] = React.useState('');
@@ -10,19 +17,21 @@ export function PlayerSetup({ onStart, onBack, ageMode, gameMode }) {
   // ── Bireysel mod ─────────────────────────────────────────
   const [players, setPlayers] = React.useState([]);
   const [name, setName] = React.useState('');
-  const [newPlayerIsYouth, setNewPlayerIsYouth] = React.useState(false);
+  const [newPlayerAge, setNewPlayerAge] = React.useState('yetiskin');
   const inputRef = React.useRef(null);
 
   function addPlayer() {
     const t = name.trim();
     if (!t || players.length >= MAX_PLAYERS) return;
-    setPlayers(p => [...p, { name: t, isYouth: isMixed ? newPlayerIsYouth : false }]);
+    setPlayers(p => [...p, { name: t, age: isMixed ? newPlayerAge : 'yetiskin' }]);
     setName('');
     setTimeout(() => inputRef.current && inputRef.current.focus(), 0);
   }
   function removePlayer(i) { setPlayers(p => p.filter((_, idx) => idx !== i)); }
+  // Rozete dokununca sıradaki yaş kategorisine geçer (çocuk → genç → yetişkin → …).
   function togglePlayerAge(i) {
-    setPlayers(p => p.map((pl, idx) => idx === i ? { ...pl, isYouth: !pl.isYouth } : pl));
+    setPlayers(p => p.map((pl, idx) => idx === i
+      ? { ...pl, age: AGES[(AGES.indexOf(pl.age) + 1) % AGES.length] } : pl));
   }
   function handleSoloKey(e) { if (e.key === 'Enter') addPlayer(); }
 
@@ -32,15 +41,15 @@ export function PlayerSetup({ onStart, onBack, ageMode, gameMode }) {
     { name: 'Takım 2', players: [] },
   ]);
   const [gInputs, setGInputs] = React.useState([
-    { value: '', isYouth: false },
-    { value: '', isYouth: false },
+    { value: '', age: 'yetiskin' },
+    { value: '', age: 'yetiskin' },
   ]);
 
   function addGroup() {
     if (groups.length >= 4) return;
     const n = groups.length + 1;
     setGroups(g => [...g, { name: `Takım ${n}`, players: [] }]);
-    setGInputs(inp => [...inp, { value: '', isYouth: false }]);
+    setGInputs(inp => [...inp, { value: '', age: 'yetiskin' }]);
   }
   function removeGroup(gi) {
     if (groups.length <= 2) return;
@@ -51,7 +60,7 @@ export function PlayerSetup({ onStart, onBack, ageMode, gameMode }) {
     const val = (gInputs[gi] || {}).value && gInputs[gi].value.trim();
     if (!val) return;
     setGroups(g => g.map((grp, i) => i !== gi ? grp : {
-      ...grp, players: [...grp.players, { name: val, isYouth: gInputs[gi].isYouth }],
+      ...grp, players: [...grp.players, { name: val, age: gInputs[gi].age }],
     }));
     setGInputs(inp => inp.map((v, i) => i !== gi ? v : { ...v, value: '' }));
   }
@@ -66,8 +75,8 @@ export function PlayerSetup({ onStart, onBack, ageMode, gameMode }) {
   function setGVal(gi, val) {
     setGInputs(inp => inp.map((v, i) => i !== gi ? v : { ...v, value: val }));
   }
-  function setGYouth(gi, val) {
-    setGInputs(inp => inp.map((v, i) => i !== gi ? v : { ...v, isYouth: val }));
+  function setGAge(gi, val) {
+    setGInputs(inp => inp.map((v, i) => i !== gi ? v : { ...v, age: val }));
   }
   function handleGroupKey(e, gi) { if (e.key === 'Enter') addPlayerToGroup(gi); }
 
@@ -174,7 +183,7 @@ export function PlayerSetup({ onStart, onBack, ageMode, gameMode }) {
           <div style={{ display:'flex', flexDirection:'column', gap:12, paddingBottom:8 }}>
             {groups.map((g, gi) => {
               const col = GRP_COLORS[gi % GRP_COLORS.length];
-              const inp = gInputs[gi] || { value: '', isYouth: false };
+              const inp = gInputs[gi] || { value: '', age: 'yetiskin' };
               const canAdd = !!inp.value.trim();
               return (
                 <div key={gi} style={{
@@ -237,10 +246,10 @@ export function PlayerSetup({ onStart, onBack, ageMode, gameMode }) {
                         {isMixed && (
                           <span style={{
                             fontSize:8, fontWeight:800, letterSpacing:'0.1em', textTransform:'uppercase',
-                            color: p.isYouth ? col.accent : '#999',
+                            color: p.age !== 'yetiskin' ? col.accent : '#999',
                             padding:'2px 6px', background:'rgba(0,0,0,0.06)', borderRadius:100,
                           }}>
-                            {p.isYouth ? STRINGS.scene.ageYouth : STRINGS.scene.ageAdult}
+                            {STRINGS.scene.ageBadge[p.age]}
                           </span>
                         )}
                         <button
@@ -279,17 +288,14 @@ export function PlayerSetup({ onStart, onBack, ageMode, gameMode }) {
                       />
                       {isMixed && (
                         <div style={{ display:'flex', background:'rgba(0,0,0,0.07)', borderRadius:100, padding:2, margin:'0 6px', gap:1, flexShrink:0 }}>
-                          {[
-                            { value: false, label: STRINGS.settings.ageAdult },
-                            { value: true,  label: STRINGS.settings.ageYouth },
-                          ].map(opt => {
-                            const active = inp.isYouth === opt.value;
+                          {STRINGS.settings.ageOptions.map(opt => {
+                            const active = inp.age === opt.value;
                             return (
                               <button
-                                key={String(opt.value)}
-                                onClick={() => setGYouth(gi, opt.value)}
+                                key={opt.value}
+                                onClick={() => setGAge(gi, opt.value)}
                                 style={{
-                                  padding:'4px 9px', borderRadius:100, border:'none', cursor:'pointer',
+                                  padding:'4px 7px', borderRadius:100, border:'none', cursor:'pointer',
                                   fontFamily:'Nunito', fontWeight:800, fontSize:9, letterSpacing:'0.06em',
                                   background: active ? '#1A1A1A' : 'transparent',
                                   color: active ? '#fff' : '#888',
@@ -373,12 +379,12 @@ export function PlayerSetup({ onStart, onBack, ageMode, gameMode }) {
                         fontFamily:'Nunito', fontWeight:800, fontSize:9,
                         letterSpacing:'0.12em', textTransform:'uppercase',
                         padding:'3px 10px', borderRadius:100, border:'none', cursor:'pointer',
-                        background: p.isYouth ? 'linear-gradient(135deg,#3D5AFE,#5FB8FF)' : 'rgba(255,255,255,0.28)',
+                        background: AGE_BADGE_BG[p.age],
                         color:'#fff',
-                        boxShadow: p.isYouth ? '0 2px 8px -2px rgba(61,90,254,0.5)' : 'none',
+                        boxShadow: p.age !== 'yetiskin' ? '0 2px 8px -2px rgba(0,0,0,0.3)' : 'none',
                         transition:'all 0.18s',
                       }}
-                    >{p.isYouth ? STRINGS.scene.ageYouth : STRINGS.scene.ageAdult}</button>
+                    >{STRINGS.scene.ageBadge[p.age]}</button>
                   )}
                   <button onClick={() => removePlayer(i)} style={{
                     position:'absolute', top:8, right:8,
@@ -420,17 +426,14 @@ export function PlayerSetup({ onStart, onBack, ageMode, gameMode }) {
               />
               {isMixed && (
                 <div style={{ display:'flex', background:'rgba(0,0,0,0.07)', borderRadius:100, padding:2, margin:'0 6px', flexShrink:0, gap:1 }}>
-                  {[
-                    { value: false, label: STRINGS.settings.ageAdult },
-                    { value: true,  label: STRINGS.settings.ageYouth },
-                  ].map(opt => {
-                    const active = newPlayerIsYouth === opt.value;
+                  {STRINGS.settings.ageOptions.map(opt => {
+                    const active = newPlayerAge === opt.value;
                     return (
                       <button
-                        key={String(opt.value)}
-                        onClick={() => setNewPlayerIsYouth(opt.value)}
+                        key={opt.value}
+                        onClick={() => setNewPlayerAge(opt.value)}
                         style={{
-                          padding:'5px 10px', borderRadius:100, border:'none', cursor:'pointer',
+                          padding:'5px 8px', borderRadius:100, border:'none', cursor:'pointer',
                           fontFamily:'Nunito', fontWeight:800, fontSize:10, letterSpacing:'0.06em',
                           background: active ? '#1A1A1A' : 'transparent',
                           color: active ? '#fff' : '#888',

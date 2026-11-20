@@ -13,7 +13,7 @@ export function AgeSelectScreen({ onSelect, onBack }) {
       value: 'adult',
       emoji: '🎯',
       title: 'Yetişkin',
-      desc: 'Yetişkin sahneler',
+      desc: '18+ yaş',
       grad: 'linear-gradient(145deg,#FF6B7A,#E63946)',
       shadow: 'rgba(230,57,70,0.45)',
       textColor: '#fff',
@@ -31,9 +31,18 @@ export function AgeSelectScreen({ onSelect, onBack }) {
       value: 'youth',
       emoji: '⭐',
       title: 'Genç',
-      desc: 'Herkese uygun',
+      desc: '13-17 yaş',
       grad: 'linear-gradient(145deg,#3D5AFE,#B14AED)',
       shadow: 'rgba(61,90,254,0.45)',
+      textColor: '#fff',
+    },
+    {
+      value: 'child',
+      emoji: '🧸',
+      title: 'Çocuk',
+      desc: '7-12 yaş',
+      grad: 'linear-gradient(145deg,#2ED573,#14B859)',
+      shadow: 'rgba(30,185,84,0.45)',
       textColor: '#fff',
     },
   ];
@@ -93,16 +102,16 @@ export function AgeSelectScreen({ onSelect, onBack }) {
           </div>
         </div>
 
-        {/* 3 renkli kart */}
-        <div style={{ display: 'flex', gap: 'clamp(10px,3vw,16px)', width: '100%', maxWidth: 380 }}>
-          {options.map(opt => {
+        {/* 4 renkli kart — 2×2 ızgara */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(10px,3vw,16px)', width: '100%', maxWidth: 380 }}>
+          {options.map((opt, oi) => {
             const isPressed = pressed === opt.value;
             return (
               <button
                 key={opt.value}
                 onClick={() => handleSelect(opt.value)}
                 style={{
-                  flex: 1, border: 'none', cursor: 'pointer',
+                  border: 'none', cursor: 'pointer',
                   borderRadius: 28,
                   padding: 'clamp(20px,5.5vw,32px) 6px clamp(18px,5vw,28px)',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
@@ -117,7 +126,7 @@ export function AgeSelectScreen({ onSelect, onBack }) {
                 <div style={{
                   fontSize: 'clamp(38px,10.5vw,52px)', lineHeight: 1,
                   filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
-                  animation: `bob 2.2s ease-in-out ${opt.value === 'adult' ? '0s' : opt.value === 'mixed' ? '0.4s' : '0.8s'} infinite`,
+                  animation: `bob 2.2s ease-in-out ${oi * 0.4}s infinite`,
                 }}>
                   {opt.emoji}
                 </div>
