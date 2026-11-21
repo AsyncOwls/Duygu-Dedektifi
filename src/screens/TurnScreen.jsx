@@ -256,7 +256,9 @@ export function TurnScreen({ playerName, playerGrad, playerAnimal, initialAge, a
   /* ── Kelime kartı: önce 5 öğeden 3'ü seçilir, sonra sayaç ── */
   const [picking, setPicking] = React.useState(false);
   const [picks, setPicks] = React.useState([]);   // seçilen öğelerin indeksleri (0-4)
-  const card = emotion ? getEmotionCard(emotion, age) : null;
+  const [cardIdx, setCardIdx] = React.useState(0); // duygunun kartlarından hangisi
+  const entry = emotion ? getEmotionCard(emotion, age) : null;
+  const card = entry ? { kelimeler: entry.kartlar[cardIdx % entry.kartlar.length] } : null;
 
   /* ── Sayaç ── */
   const TOTAL = [60, 90, 120].includes(timerDuration) ? timerDuration : 90;
@@ -294,6 +296,9 @@ export function TurnScreen({ playerName, playerGrad, playerAnimal, initialAge, a
 
   /* ── Yeni duygu göster: kelime seçimine dön, sayaç sıfırlanır ── */
   function showEmotion(e) {
+    // Duygunun kartlarından biri rastgele (aynı duygu her seferinde farklı kelimelerle gelebilir)
+    const ent = getEmotionCard(e.emotion, age);
+    setCardIdx(ent ? Math.floor(Math.random() * ent.kartlar.length) : 0);
     setEmo(e);
     onEmotionDrawn({ emotion: e.emotion, group: e.group, age });
     setPhase('revealed');
